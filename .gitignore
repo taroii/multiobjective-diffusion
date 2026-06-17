@@ -1,0 +1,11 @@
+.vscode/
+.notes/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# scratch / exploratory helpers (kept local, not part of the deliverable)
+experiments/_*.py
+experiments/explore_targets.py

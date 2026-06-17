@@ -1,0 +1,5 @@
+# Core scientific stack for the 2D multi-objective weighted-score experiments.
+# PyTorch is installed separately (see README) so the right CPU/CUDA wheel is used.
+numpy>=2.0
+scipy>=1.13
+matplotlib>=3.8
