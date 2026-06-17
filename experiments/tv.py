@@ -58,3 +58,14 @@ def worst_case_tv(grid: TVGrid, marg1, marg2, samples):
     tv1 = grid.tv(marg1, samples)
     tv2 = grid.tv(marg2, samples)
     return max(tv1, tv2), tv1, tv2
+
+
+def worst_case_tv_multi(grid: TVGrid, marginals, samples):
+    """(max_i TV, [TV_i]) for m target marginals against one sample set.
+
+    ``marginals`` is a list of analytic GMM marginals (one per objective); the
+    sample pmf is computed once and reused.
+    """
+    p = grid.sample_pmf(samples)
+    tvs = [0.5 * np.sum(np.abs(p - grid.target_pmf(m))) for m in marginals]
+    return max(tvs), tvs

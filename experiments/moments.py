@@ -33,6 +33,46 @@ def _spectral_norm_batch(M):
     return np.linalg.svd(M, compute_uv=False).max(axis=1)
 
 
+def estimate_gram(scores, targets, schedule: VPSchedule,
+                  n_mc: int = 2500, n_tgrid: int = 60, seed: int = 0):
+    """Estimate the per-objective Gram matrices Sigma_i and Jacobian vectors b_i.
+
+    For m objectives (paper Sec. "Per-objective errors as functions of w"):
+
+        [Sigma_i]_{jk} = (1/T) sum_t E_{X~q_t^i} [ D_ij^s(X)^T D_ik^s(X) ],
+        [b_i]_j        = (1/T) sum_t E_{X~q_t^i} || D_ij^J(X) ||_2 ,
+
+    with D_ij^s = s^j - s^i and D_ij^J = J_{s^j} - J_{s^i}.  Each Sigma_i is PSD
+    with zero i-th row/column; b_i has [b_i]_i = 0.  Returns (Sigmas, bs) as
+    lists of m arrays of shape (m, m) and (m,).
+    """
+    rng = np.random.default_rng(seed)
+    m = len(scores)
+    t_grid = np.unique(np.linspace(1, schedule.T, n_tgrid).astype(int))
+    sqrt_abar = np.sqrt(schedule.abar)
+    sqrt_1m = np.sqrt(1.0 - schedule.abar)
+
+    Sigmas = [np.zeros((m, m)) for _ in range(m)]
+    bs = [np.zeros(m) for _ in range(m)]
+
+    for i in range(m):
+        for t in t_grid:
+            x0 = targets[i].sample(n_mc, rng)
+            eps = rng.standard_normal((n_mc, 2))
+            x = sqrt_abar[t - 1] * x0 + sqrt_1m[t - 1] * eps
+            si = scores[i].score(x, t)                               # (N, 2)
+            D = np.stack([scores[j].score(x, t) - si for j in range(m)], axis=0)  # (m,N,2)
+            Sigmas[i] += np.einsum("jnd,knd->jk", D, D) / n_mc       # (m, m)
+            Ji = scores[i].jacobian(x, t)                            # (N, 2, 2)
+            for j in range(m):
+                if j == i:
+                    continue
+                bs[i][j] += _spectral_norm_batch(scores[j].jacobian(x, t) - Ji).mean()
+        Sigmas[i] /= len(t_grid)
+        bs[i] /= len(t_grid)
+    return Sigmas, bs
+
+
 @dataclass
 class PairMoment:
     sigma2: float       # sigma_ij^2  (mean of per-t estimates)

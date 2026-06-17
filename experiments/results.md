@@ -37,3 +37,30 @@ Estimator floors (single-objective TV at the matched weight, pure histogram/disc
 | empirical (hat_alpha) | 0.1900 |
 
 The closed-form weight beats uniform by +0.0046 TV and the single-objective baselines by +0.0531 (vs the better single objective).
+
+The two faces are deliberately *similar* (shared outline/eyes/brows, differing only
+in the mouth) — the realistic regime for combining two related image
+distributions. The worst-case TV therefore varies only modestly with $\alpha$ (a
+shallow bowl) and uniform is already near optimal, so $\alpha^\star$'s clear
+margin is over the single-objective baselines; it still lands on the empirical
+minimum (within $0.05$) and edges past uniform.
+
+## Learned-score robustness check (`run_learned.py`, `results_learned.json`)
+
+We retrain with **learned** scores: two tiny MLPs trained by independent
+single-objective denoising score matching, one per face; the moments (Jacobians
+via autograd) and $\alpha^\star$ are re-estimated from the learned scores, and the
+sweep is rerun with the learned-score chain.
+
+| quantity | analytic | learned |
+|---|---|---|
+| $\alpha^\star$ | 0.642 | 0.608 |
+| empirical minimizer $\hat\alpha$ | 0.592 | 0.508 |
+
+The closed-form $\alpha^\star$ shifts by only $-0.034$ under learned scores,
+staying in the same region — the closed form is robust to score-estimation error.
+The learned scores fit the fine face structure imperfectly (so the learned bowl
+sits higher and is noisier, and its empirical minimizer is pulled toward uniform),
+but the *predicted* weight tracks the analytic one. The residual shift is the
+behaviour that motivates the learned-score concentration / sample-complexity
+question in the paper's open problems; here it is quantified rather than hidden.

@@ -20,12 +20,21 @@ in terms of four distribution-level moments: the time-averaged score-difference
 RMS gaps $\sigma_{ij}$ and Jacobian-difference (operator-norm) gaps $b_{ij}$,
 each measured under objective $i$'s own forward marginals.
 
-This repository contains a self-contained 2D experiment that **validates that
-closed form**: it estimates the four moments by Monte Carlo, predicts
-$\alpha^\star$, and then independently measures the realized worst-case TV of the
-weighted-score chain as a function of $\alpha$ — showing the realized minimum
-lands on the predicted $\alpha^\star$, which beats the uniform and
-single-objective baselines.
+This repository contains self-contained 2D experiments that validate **both key
+results**:
+
+- **Key Result II (closed-form $m=2$).** Estimate the four moments by Monte
+  Carlo, predict $\alpha^\star$, then independently measure the realized
+  worst-case TV of the weighted-score chain as a function of $\alpha$ — the
+  realized minimum lands on the predicted $\alpha^\star$, which beats the uniform
+  and single-objective baselines.
+- **Key Result I (general $m$).** Estimate the Gram matrices $\Sigma_i,b_i$,
+  solve the reduced SOCP for $w^\star$, and show the simplex algorithms MG-AMOO
+  and PAMOO reach $w^\star$ at the predicted $\mathcal{O}(1/\sqrt K)$ rate.
+
+The convex bound is the theory's actual object; the realized worst-case TV
+validates it up to the (loose) universal constants. See the honest discussion at
+the end.
 
 ## Why 2D analytic scores
 
@@ -92,27 +101,35 @@ system.
 
 ```setup
 cd experiments
+# Key Result II -- closed-form two-objective weight (happy/sad faces):
 python run_analytic.py          # hero pipeline: moments, alpha*, TV sweep, figures
-python run_analytic.py --quick  # fast, coarse version for a smoke test (~5 min)
 python run_learned.py           # learned-score robustness check (trains two MLPs)
+# Key Result I -- general m, the SOCP and the simplex algorithms (m=3):
+python run_socp.py              # Gram moments, SOCP w*, MG-AMOO/PAMOO, figures
+python make_figures.py          # re-render all BOUND figures from saved JSON (instant)
 ```
 
-`run_analytic.py` writes `results.json`, `results.md`, and three figures to
-`figs/` (vector PDF + PNG preview). Everything is seeded; all hyperparameters are
-logged in `results.json`.
+Both pipelines are seeded and log all hyperparameters to their `results*.json`.
+The bound-based figures (`make_figures.py`) are computed analytically from the
+moments, so they re-render in seconds without any diffusion sampling.
 
 ## Code layout
 
 ```
 experiments/
-  targets.py        # GMM class (analytic score + Jacobian); happy/sad face targets
+  targets.py        # GMM class (analytic score + Jacobian); faces + m-objective targets
   diffusion.py      # VP/DDPM schedule; analytic score at any noise level
-  moments.py        # MC estimation of sigma_ij, b_ij; closed-form alpha*
-  sampler.py        # deterministic PF-ODE weighted-score chain (Li et al. 2023)
-  tv.py             # binned 2D total-variation estimator
-  run_analytic.py   # full analytic-score pipeline -> figures + results table
+  moments.py        # MC estimation of sigma_ij,b_ij (m=2) and Gram Sigma_i,b_i (general m)
+  sampler.py        # deterministic PF-ODE weighted-score chain (Li et al. 2023), any m
+  tv.py             # binned 2D total-variation estimator (worst-case over m targets)
+  socp.py           # constant-free g_i, the reduced SOCP, and MG-AMOO / PAMOO
+  pubfigs.py        # publication figure style + bound figures (incl. 3D surface)
   nets.py           # tiny per-objective score MLPs + DSM training; LearnedScore
+  run_analytic.py   # Key Result II: closed-form alpha* pipeline -> figures + results
   run_learned.py    # learned-score robustness check
+  run_socp.py       # Key Result I: SOCP + algorithms (m=3) -> figures + results
+  run_sharp_m2.py   # strongly-asymmetric m=2 demo (the loose-constant regime)
+  make_figures.py   # regenerate the bound figures from saved results (no diffusion)
   figs/             # PDF + PNG outputs
 ```
 
@@ -131,6 +148,21 @@ experiments/
 - `figs/learned_worstTV.{pdf,png}` — the learned-score robustness check: the
   realized worst-case-TV bowl with learned scores, against the learned and
   analytic $\alpha^\star$.
+
+**Key Result I (general $m$, the bound and the algorithms):**
+
+- `figs/socp_surface3d.{pdf,png}` — the convex minimax $\max_i g_i(w)$ as a **3D
+  surface over the simplex** $\Delta^3$, with the SOCP optimum $w^\star$ in the
+  valley.
+- `figs/socp_trajectories.{pdf,png}` — MG-AMOO and PAMOO average iterates
+  descending the simplex to $w^\star$, over the bound contour.
+- `figs/socp_convergence.{pdf,png}` — the optimality gap $\Gamma_K$ vs $K$ for
+  both algorithms against the predicted $\mathcal{O}(1/\sqrt K)$ rate.
+- `figs/socp_simplex.{pdf,png}` — the **realized** worst-case TV over the simplex
+  (the honest sampling-side check).
+- `figs/m2_bound.{pdf,png}` — the two-objective money figure: $\alpha^\star$
+  minimizes the convex bound (uniform pays a clear margin), with the realized-TV
+  argmin matching $\alpha^\star$.
 
 ## Results
 
@@ -153,9 +185,9 @@ $180\times180$ TV bins):
   vs. $0.251/0.251$ for the single-objective weights (each abandons one
   expression) and $0.203$ for uniform.
 
-The two faces are deliberately *similar* — they share the outline, eyes, and
-brows and differ only in the mouth — which is the realistic regime for combining
-two related image distributions. In that regime the worst-case TV varies only
+The two faces are deliberately *similar* — they share the outline and eyes and
+differ only in the mouth — which is the realistic regime for combining two
+related image distributions. In that regime the worst-case TV varies only
 modestly with $\alpha$ (the bowl is shallow) and uniform is already near optimal,
 so $\alpha^\star$'s clear win is over the *single-objective* baselines; it still
 lands on the empirical minimum and edges past uniform. Exact numbers are in
@@ -169,3 +201,37 @@ and $\alpha^\star$ from the learned scores and reruns the sweep. The closed-form
 $\alpha^\star$ continues to track the empirical worst-case-TV minimum under
 learned scores; the small shift is the expected signature of score-estimation
 error. See `results_learned.json` (regenerated by `run_learned.py`).
+
+### Key Result I — the SOCP and the simplex algorithms ($m=3$)
+
+Three 2D targets of different difficulty (a sharp 16-mode grid, a broad blob, and
+a ring). We estimate the Gram matrices $\Sigma_i$ and Jacobian vectors $b_i$,
+solve the reduced constant-free SOCP for $w^\star$, and run the two simplex
+algorithms:
+
+- **SOCP optimum:** $w^\star=(0.16,\,0.63,\,0.20)$ with bound $\max_i g_i(w^\star)=5.57$,
+  versus $9.04$ at uniform — $w^\star$ is **62 % below uniform in the bound**.
+- **Algorithms reach it at the predicted rate:** PAMOO converges to $w^\star$ to a
+  gap of $\approx2.6\times10^{-3}$ (the smooth $\mathcal O(1/K)$ regime); MG-AMOO
+  tracks the $\mathcal O(1/\sqrt K)$ reference. See `socp_convergence` and the
+  trajectory / 3D-surface figures. Numbers in `results_socp.json`.
+
+### An honest structural finding (the framing)
+
+Across every instance (faces, letters, sharp-vs-broad grids, the $m=3$ simplex),
+the **realized** worst-case-TV optimum sits at or very near the centroid
+(uniform). The weighted score is the score of the *geometric mean*
+$q_1^{w_1}\!\cdots q_m^{w_m}$, and at the centroid that blend mismatches every
+objective about equally, so the realized worst-case TV is nearly flat there.
+Consequently:
+
+- $\alpha^\star$ / $w^\star$ **always crush the single-objective weights** (each
+  abandons a target) — the large, robust realized win.
+- The theory's object is the **convex bound**, and there $\alpha^\star/w^\star$
+  beat uniform clearly (e.g. $39\%$ for $m=2$, $62\%$ for $m=3$); the SOCP and the
+  $m$-independent algorithms (Key Result I) are validated cleanly.
+- When the *moments* predict a large tilt for strongly-asymmetric targets, the
+  bound's loose universal constants do not pass that tilt through to realized TV,
+  so uniform stays near-optimal *in realized TV*. This gap between the
+  bound-optimal weight and the realized optimum is exactly the loose-constant
+  slack the theory carries, and we report it rather than hide it.

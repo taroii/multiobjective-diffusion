@@ -1,10 +1,13 @@
-"""Two 2D Gaussian-mixture targets spelling the letters "A" and "I".
+"""Two 2D Gaussian-mixture targets: a "happy" and a "sad" smiley face.
 
-The two targets are deliberately *asymmetric* (different per-component spread
-and different number of components) so that the score-difference moments come
-out asymmetric, sigma_12 != sigma_21 and b_12 != b_21, pushing the closed-form
-optimal weight alpha* off 1/2.  If alpha* came out to 1/2 the experiment would
-teach a reviewer nothing.
+The two faces are RELATED -- they share a circular outline, eye positions, and
+brows, and differ only in the mouth (a big grin vs. a small frown).  This is the
+regime the method is built for: combining two related image distributions (same
+content, different attribute) with a single shared chain.  The mouth asymmetry
+makes the score-difference moments asymmetric (sigma_12 != sigma_21,
+b_12 != b_21), pushing the closed-form optimal weight alpha* off 1/2; the large
+shared structure keeps the weighted-score (geometric-mean) blend non-degenerate
+so the chain morphs smoothly between the two expressions.  See ``_face`` below.
 
 A GaussianMixture here has *isotropic* components, N(mu_k, v_k * I_2), because
 that is all we need and it keeps the analytic score/Jacobian compact.  The
@@ -128,60 +131,53 @@ class GaussianMixture:
 # Face targets: "happy" vs "sad"
 # ---------------------------------------------------------------------------
 # Two RELATED 2D distributions: smiley faces that share a circular outline and
-# eye positions (a large common structure) and differ only in EXPRESSION -- the
-# mouth, eyebrows, and eye size.  This is the regime the method is built for:
-# combining two related image distributions with one shared chain.
+# eyes (a large common structure) and differ only in EXPRESSION -- the mouth.
+# This is the regime the method is built for: combining two related image
+# distributions with one shared chain.
 #
 # The shared structure is load-bearing.  The weighted score s_w = a*grad log q_H
 # + (1-a)*grad log q_S is the score of the GEOMETRIC MEAN q_H^a q_S^(1-a), which
-# only has mass where BOTH targets do.  The big shared outline + eyes (and flat
-# brows) therefore guarantee heavy overlap, so the single weighted-score chain
-# renders a coherent face whose expression morphs smoothly from sad (a=0) to
-# happy (a=1) -- rather than collapsing, which is what happens for disjoint
-# targets.  The two faces differ ONLY in the MOUTH (a big grin vs a small frown);
-# this single, localized, asymmetric difference is what pushes the closed-form
-# alpha* clearly off 1/2 (to ~0.65) while keeping the realized worst-case-TV
-# optimum well predicted.  (Adding more differing features -- brows, eye size --
-# deepens the bowl but makes the difference more symmetric, pulling the realized
-# optimum back toward 1/2 and away from alpha*; differing in the mouth alone
-# gives the best agreement.)
-_OUTLINE_N = 18
+# only has mass where BOTH targets do.  The big shared outline + eyes therefore
+# guarantee heavy overlap, so the single weighted-score chain renders a coherent
+# face whose expression morphs smoothly from sad (a=0) to happy (a=1) -- rather
+# than collapsing, which is what happens for disjoint targets.  The two faces
+# differ ONLY in the MOUTH (a big grin vs a small frown); this single, localized,
+# asymmetric difference is what pushes the closed-form alpha* clearly off 1/2 (to
+# ~0.65) while keeping the realized worst-case-TV optimum well predicted.  The
+# outline uses many tightly-spaced components so it renders as a smooth ring.
+_OUTLINE_N = 44
 _EYES = np.array([[-0.85, 0.65], [0.85, 0.65]])
-SHARED_SPREAD = 0.16  # per-component spread of the shared outline
+SHARED_SPREAD = 0.15  # per-component spread of the (densely sampled) outline
 
 
 def _face(mouth_curv, mouth_spread, n_mouth, mouth_w, eye_spread=0.18,
-          brow_curv=0.0, outline_r=2.2, brow_y=1.45, spread=SHARED_SPREAD) -> GaussianMixture:
+          outline_r=2.2, spread=SHARED_SPREAD) -> GaussianMixture:
     """One smiley face as an isotropic-component GMM.
 
-    Outline + eyes + flat brows (all SHARED between the two faces) and a parabolic
-    mouth (sign of ``mouth_curv``: + smile, - frown).  Only the mouth is meant to
-    differ across the two expressions; the rest is the shared overlap anchor.
+    A smooth circular outline + two eyes (both SHARED between the two faces) and a
+    parabolic mouth (sign of ``mouth_curv``: + smile, - frown).  Only the mouth
+    differs across the two expressions; the rest is the shared overlap anchor.
     """
     th = np.linspace(0.0, 2 * np.pi, _OUTLINE_N, endpoint=False)
     outline = np.stack([outline_r * np.cos(th), outline_r * np.sin(th)], axis=1)
     mx = np.linspace(-mouth_w, mouth_w, n_mouth)
     mouth = np.stack([mx, -0.95 + mouth_curv * (mx / mouth_w) ** 2], axis=1)
-    bx = np.linspace(-0.4, 0.4, 3)
-    brows = np.vstack([np.stack([cx + bx, brow_y + brow_curv * (bx / 0.4) ** 2], axis=1)
-                       for cx in (-0.85, 0.85)])
-    means = np.vstack([outline, _EYES, mouth, brows])
+    means = np.vstack([outline, _EYES, mouth])
     variances = np.concatenate([
         np.full(_OUTLINE_N, spread ** 2),
         np.full(len(_EYES), eye_spread ** 2),
         np.full(n_mouth, mouth_spread ** 2),
-        np.full(len(brows), 0.14 ** 2),
     ])
     return GaussianMixture(means, variances)
 
 
 def happy_face() -> GaussianMixture:
-    """Big, wide grin (shared outline/eyes/brows)."""
+    """Big, wide grin (shared outline/eyes)."""
     return _face(mouth_curv=+0.65, mouth_spread=0.16, n_mouth=11, mouth_w=1.2)
 
 
 def sad_face() -> GaussianMixture:
-    """Small, narrow frown (shared outline/eyes/brows)."""
+    """Small, narrow frown (shared outline/eyes)."""
     return _face(mouth_curv=-0.40, mouth_spread=0.16, n_mouth=7, mouth_w=0.8)
 
 
@@ -191,3 +187,60 @@ def make_targets():
     Objective 1 is the happy face (weight ``alpha``), objective 2 the sad face.
     """
     return happy_face(), sad_face()
+
+
+# ---------------------------------------------------------------------------
+# Abstract targets for the quantitative experiments
+# ---------------------------------------------------------------------------
+# These differ in DIFFICULTY (sharpness / multimodality), not just location, so
+# the pairwise score/Jacobian gaps are large and asymmetric -- giving a deep
+# worst-case-TV bowl where uniform visibly loses, and (for m>=3) a non-trivial
+# interior SOCP optimum.  All are centred on the same region so the
+# weighted-score (geometric-mean) blend stays non-degenerate.
+def gaussian_grid(n_side: int = 4, extent: float = 2.2, spread: float = 0.13) -> GaussianMixture:
+    """n_side x n_side grid of sharp Gaussians -- a hard, multimodal target."""
+    xs = np.linspace(-extent, extent, n_side)
+    means = np.stack(np.meshgrid(xs, xs, indexing="ij"), axis=-1).reshape(-1, 2)
+    return GaussianMixture(means, np.full(len(means), spread ** 2))
+
+
+def broad_blob(spread: float = 1.1, center=(0.0, 0.0)) -> GaussianMixture:
+    """A single broad Gaussian -- an easy, smooth, low-curvature target."""
+    return GaussianMixture(np.array([center], float), np.array([spread ** 2]))
+
+
+def ring(r: float = 2.0, n: int = 16, spread: float = 0.16, center=(0.0, 0.0)) -> GaussianMixture:
+    """A ring of Gaussians of radius r."""
+    th = np.linspace(0.0, 2 * np.pi, n, endpoint=False)
+    means = np.stack([center[0] + r * np.cos(th), center[1] + r * np.sin(th)], axis=1)
+    return GaussianMixture(means, np.full(n, spread ** 2))
+
+
+def make_sharp_pair():
+    """Sharper m=2 instance: a SHARP vs a BROAD 16-mode grid at the SAME
+    locations.  The two targets share support and mode locations and differ
+    ONLY in difficulty (per-mode sharpness): objective 1 (weight alpha) is the
+    sharp, high-curvature grid; objective 2 the broad, smooth one.  Sharing the
+    support avoids the moment artifact a broad blob's wide tails would create
+    (they sample far regions where the sharp score is erratic), so the
+    closed-form alpha* stays calibrated while the bowl is deep and uniform loses.
+    """
+    xs = np.linspace(-2.0, 2.0, 4)
+    means = np.stack(np.meshgrid(xs, xs, indexing="ij"), axis=-1).reshape(-1, 2)
+    sharp = GaussianMixture(means, np.full(len(means), 0.12 ** 2))
+    broad = GaussianMixture(means, np.full(len(means), 0.42 ** 2))
+    return sharp, broad
+
+
+def make_targets_m(m: int = 3):
+    """A set of m related-but-different-difficulty 2D targets for the SOCP /
+    algorithms experiment (Key Result I).  Centred on the same region; each is
+    "hard" in a different way, so the SOCP optimum w* is interior."""
+    pool = [
+        gaussian_grid(4, extent=2.2, spread=0.13),   # sharp multimodal grid
+        broad_blob(spread=1.2),                       # easy broad blob
+        ring(r=2.1, n=16, spread=0.15),               # ring
+        gaussian_grid(2, extent=1.4, spread=0.30),    # 4 medium blobs
+    ]
+    assert 2 <= m <= len(pool)
+    return pool[:m]

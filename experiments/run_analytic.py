@@ -36,7 +36,7 @@ HP = dict(
     beta_max=0.02,
     n_mc=4000,
     n_tgrid=80,
-    n_samples=120_000,
+    n_samples=90_000,
     n_bins=180,
     box=(-3.4, 3.4),
     seed=0,
@@ -46,7 +46,7 @@ HP = dict(
 
 def alpha_grid(alpha_star: float) -> np.ndarray:
     """Uniform sweep, densified around the predicted minimum."""
-    base = np.linspace(0.0, 1.0, 21)                       # step 0.05
+    base = np.linspace(0.0, 1.0, 17)                       # step ~0.0625
     dense = np.linspace(max(0, alpha_star - 0.1),
                         min(1, alpha_star + 0.1), 9)
     pts = np.unique(np.round(np.concatenate([base, dense, [0.5]]), 4))

@@ -1,7 +1,7 @@
 """Tiny per-objective score networks + denoising score matching (DSM).
 
-For the learned-score robustness check we train one small MLP per letter by
-independent single-objective DSM on that letter's samples.  Each network
+For the learned-score robustness check we train one small MLP per objective by
+independent single-objective DSM on that face's samples.  Each network
 predicts the noise eps_theta(x, t); the implied score is
 
     s_theta(x, t) = - eps_theta(x, t) / sqrt(1 - bar_alpha_t).
