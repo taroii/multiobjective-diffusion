@@ -1,0 +1,48 @@
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lcl r@{\;}l r}
+\toprule
+Covariances & $m$ & Compared with & \multicolumn{2}{c}{Excess worst-case TV, median [IQR]} & Beats ours \\
+\midrule
+Common & 2 & Random weights (fixed) & $+0.151$ & $[+0.115,\,+0.175]$ & $0\%$ \\
+ &  & Random weights (redrawn every step) & $+0.017$ & $[+0.012,\,+0.021]$ & $0\%$ \\
+ &  & Equal weights & $-0.000$ & $[-0.000,\,-0.000]$ & $0\%$ \\
+ &  & Uniform-average rule & $-0.000$ & $[-0.000,\,-0.000]$ & $0\%$ \\
+ &  & Best constant weight found & $-0.000$ & $[-0.000,\,-0.000]$ & $0\%$ \\
+\addlinespace
+Common & 3 & Random weights (fixed) & $+0.142$ & $[+0.124,\,+0.152]$ & $0\%$ \\
+ &  & Random weights (redrawn every step) & $+0.062$ & $[+0.036,\,+0.082]$ & $0\%$ \\
+ &  & Equal weights & $+0.062$ & $[+0.037,\,+0.084]$ & $0\%$ \\
+ &  & Uniform-average rule & $+0.000$ & $[+0.000,\,+0.055]$ & $0\%$ \\
+ &  & Best constant weight found & $-0.000$ & $[-0.000,\,+0.000]$ & $7\%$ \\
+\addlinespace
+Common & 5 & Random weights (fixed) & $+0.104$ & $[+0.089,\,+0.119]$ & $0\%$ \\
+ &  & Random weights (redrawn every step) & $+0.060$ & $[+0.038,\,+0.091]$ & $0\%$ \\
+ &  & Equal weights & $+0.060$ & $[+0.038,\,+0.089]$ & $0\%$ \\
+ &  & Uniform-average rule & $+0.017$ & $[+0.000,\,+0.060]$ & $0\%$ \\
+ &  & Best constant weight found & $-0.000$ & $[-0.000,\,-0.000]$ & $8\%$ \\
+\addlinespace
+Different & 2 & Random weights (fixed) & $+0.133$ & $[+0.111,\,+0.150]$ & $6\%$ \\
+ &  & Random weights (redrawn every step) & $+0.011$ & $[+0.004,\,+0.018]$ & $31\%$ \\
+ &  & Equal weights & $+0.004$ & $[-0.001,\,+0.014]$ & $33\%$ \\
+ &  & Uniform-average rule & $+0.040$ & $[+0.013,\,+0.070]$ & $7\%$ \\
+ &  & Best constant weight found & $-0.019$ & $[-0.031,\,-0.009]$ & $98\%$ \\
+\addlinespace
+Different & 3 & Random weights (fixed) & $+0.115$ & $[+0.085,\,+0.141]$ & $5\%$ \\
+ &  & Random weights (redrawn every step) & $+0.035$ & $[+0.013,\,+0.077]$ & $16\%$ \\
+ &  & Equal weights & $+0.034$ & $[+0.011,\,+0.077]$ & $14\%$ \\
+ &  & Uniform-average rule & $+0.044$ & $[+0.015,\,+0.073]$ & $11\%$ \\
+ &  & Best constant weight found & $-0.024$ & $[-0.039,\,-0.009]$ & $93\%$ \\
+\addlinespace
+Different & 5 & Random weights (fixed) & $+0.092$ & $[+0.065,\,+0.118]$ & $4\%$ \\
+ &  & Random weights (redrawn every step) & $+0.049$ & $[+0.023,\,+0.072]$ & $10\%$ \\
+ &  & Equal weights & $+0.049$ & $[+0.021,\,+0.073]$ & $11\%$ \\
+ &  & Uniform-average rule & $+0.039$ & $[+0.012,\,+0.068]$ & $16\%$ \\
+ &  & Best constant weight found & $-0.024$ & $[-0.039,\,-0.011]$ & $96\%$ \\
+\bottomrule
+\end{tabular}
+\caption{Paired comparison with the minimax schedule over 100 random instances: worst-case TV of the other rule minus ours on the same instance (positive: ours is better). For the random rules the per-instance value is the mean over the draws, and \emph{Beats ours} is the share of individual draws with a smaller worst-case TV than ours; for the other rules it is the share of instances.}
+\label{tab:random-paired}
+\end{table}

@@ -1,0 +1,22 @@
+\begin{table}[t]
+\centering
+\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{lc ccc cc c}
+\toprule
+ & & \multicolumn{3}{c}{Baselines} & \multicolumn{2}{c}{Minimax weights} & Reference \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-7}\cmidrule(lr){8-8}
+Covariances & $m$ & Random & Equal & Unif.-avg.\ & Constant & Schedule & Best found \\
+\midrule
+Common & 2 & 0.596 & \textbf{0.457} & \textbf{0.457} & \textbf{0.457} & \textbf{0.457} & \textit{0.457} \\
+Common & 3 & 0.755 & 0.682 & 0.652 & \textbf{0.620} & \textbf{0.620} & \textit{0.620} \\
+Common & 5 & 0.842 & 0.804 & 0.777 & \textbf{0.739} & \textbf{0.739} & \textit{0.739} \\
+\midrule
+Different & 2 & 0.665 & 0.544 & 0.581 & 0.545 & \textbf{0.536} & \textit{0.515} \\
+Different & 3 & 0.769 & 0.701 & 0.706 & 0.670 & \textbf{0.660} & \textit{0.634} \\
+Different & 5 & 0.833 & 0.794 & 0.780 & 0.750 & \textbf{0.741} & \textit{0.712} \\
+\bottomrule
+\end{tabular}
+\caption{Worst-case total variation $F_T(\bw)=\max_i\TV(q_1^i,p_1^{\bw})$ of the sampler (lower is better), averaged over 100 random instances of $m$ Gaussian targets in $d=2$ with $T=1000$; the best rule in each row is in bold. \emph{Random}: a weight drawn uniformly from the simplex and kept fixed (mean over 100 draws per instance). \emph{Equal}: $w=1/m$. \emph{Unif.-avg.}: the constant weight minimizing the uniform time average of the score error. \emph{Minimax}: our weights~\eqref{eq:minimax}, restricted to constant weights or as a full schedule. \emph{Best found}: the constant weight with the smallest $F_T$ found by direct search, shown as a reference; a schedule can fall below it. All values are computed exactly (no sampling error); paired differences are in Table~\ref{tab:random-paired}.}
+\label{tab:random}
+\end{table}

@@ -1,0 +1,122 @@
+# Minimax weights vs. random weights and other rules
+
+100 seeds per configuration; per seed, 100 fixed random weights and 20 per-step random schedules (uniform on the simplex). $F_T$ is the exact worst-case TV of the discretized sampler. 'paper' is the fixed instance of the experiments section (only the random weights change with the seed); 'common'/'hetero' redraw the targets (common / different covariances) for every seed. 'Best constant found' is a direct search over constant weights.
+
+## Mean worst-case TV $F_T$ over seeds
+
+| config | random, fixed | random, per step | equal weights | uniform-average rule | ours (constant) | ours (schedule) | best constant found |
+|---|---|---|---|---|---|---|---|
+| paper_m3 | 0.9451 | 0.8554 | 0.8462 | 0.9675 | 0.8461 | 0.8461 | 0.8461 |
+| common_m2 | 0.5963 | 0.4732 | 0.4568 | 0.4568 | 0.4568 | 0.4568 | 0.4568 |
+| common_m3 | 0.7549 | 0.6830 | 0.6825 | 0.6521 | 0.6197 | 0.6197 | 0.6196 |
+| common_m5 | 0.8424 | 0.8042 | 0.8037 | 0.7769 | 0.7389 | 0.7389 | 0.7389 |
+| hetero_m2 | 0.6648 | 0.5492 | 0.5438 | 0.5813 | 0.5454 | 0.5362 | 0.5154 |
+| hetero_m3 | 0.7690 | 0.7023 | 0.7013 | 0.7062 | 0.6700 | 0.6601 | 0.6344 |
+| hetero_m5 | 0.8332 | 0.7943 | 0.7940 | 0.7800 | 0.7502 | 0.7410 | 0.7119 |
+
+## Paired comparison with ours (schedule)
+
+Excess = other − ours, per seed (random: mean over the seed's draws); positive means ours is better. 'Beats ours' counts seeds (random: individual draws) that are better than ours by more than 0.0001.
+
+| config | other | median excess [IQR] | mean excess [95% CI] | beats ours | largest gain over ours |
+|---|---|---|---|---|---|
+| paper_m3 | ours (constant) | -0.0000 [-0.0000, -0.0000] | -0.0000 [-0.0000, -0.0000] | 0.0% | +0.0000 |
+| paper_m3 | equal weights | +0.0001 [+0.0001, +0.0001] | +0.0001 [+0.0001, +0.0001] | 0.0% | -0.0001 |
+| paper_m3 | uniform-average rule | +0.1215 [+0.1215, +0.1215] | +0.1215 [+0.1215, +0.1215] | 0.0% | -0.1215 |
+| paper_m3 | best constant found | -0.0000 [-0.0000, -0.0000] | -0.0000 [-0.0000, -0.0000] | 0.0% | +0.0000 |
+| paper_m3 | random, fixed | +0.0988 [+0.0973, +0.1004] | +0.0991 [+0.0985, +0.0996] | 0.0% | -0.0003 |
+| paper_m3 | random, per step | +0.0093 [+0.0087, +0.0099] | +0.0093 [+0.0091, +0.0096] | 0.0% | -0.0001 |
+| common_m2 | ours (constant) | -0.0000 [-0.0000, -0.0000] | -0.0000 [-0.0000, -0.0000] | 0.0% | +0.0000 |
+| common_m2 | equal weights | -0.0000 [-0.0000, -0.0000] | -0.0000 [-0.0000, -0.0000] | 0.0% | +0.0000 |
+| common_m2 | uniform-average rule | -0.0000 [-0.0000, -0.0000] | -0.0000 [-0.0000, -0.0000] | 0.0% | +0.0000 |
+| common_m2 | best constant found | -0.0000 [-0.0000, -0.0000] | -0.0000 [-0.0000, -0.0000] | 0.0% | +0.0000 |
+| common_m2 | random, fixed | +0.1509 [+0.1152, +0.1746] | +0.1395 [+0.1305, +0.1481] | 0.0% | -0.0000 |
+| common_m2 | random, per step | +0.0168 [+0.0121, +0.0210] | +0.0163 [+0.0152, +0.0175] | 0.0% | -0.0000 |
+| common_m3 | ours (constant) | -0.0000 [-0.0000, +0.0000] | +0.0000 [-0.0000, +0.0000] | 0.0% | +0.0000 |
+| common_m3 | equal weights | +0.0619 [+0.0373, +0.0845] | +0.0628 [+0.0565, +0.0692] | 0.0% | -0.0017 |
+| common_m3 | uniform-average rule | +0.0000 [+0.0000, +0.0552] | +0.0324 [+0.0225, +0.0432] | 0.0% | -0.0000 |
+| common_m3 | best constant found | -0.0000 [-0.0000, +0.0000] | -0.0000 [-0.0000, -0.0000] | 7.0% | +0.0003 |
+| common_m3 | random, fixed | +0.1425 [+0.1244, +0.1523] | +0.1352 [+0.1297, +0.1404] | 0.0% | -0.0001 |
+| common_m3 | random, per step | +0.0618 [+0.0361, +0.0817] | +0.0634 [+0.0573, +0.0694] | 0.0% | -0.0000 |
+| common_m5 | ours (constant) | -0.0000 [-0.0000, +0.0000] | -0.0000 [-0.0000, +0.0000] | 0.0% | +0.0000 |
+| common_m5 | equal weights | +0.0598 [+0.0379, +0.0893] | +0.0648 [+0.0581, +0.0718] | 0.0% | -0.0060 |
+| common_m5 | uniform-average rule | +0.0171 [+0.0000, +0.0599] | +0.0380 [+0.0291, +0.0477] | 0.0% | +0.0000 |
+| common_m5 | best constant found | -0.0000 [-0.0000, -0.0000] | -0.0000 [-0.0000, -0.0000] | 8.0% | +0.0004 |
+| common_m5 | random, fixed | +0.1043 [+0.0888, +0.1186] | +0.1035 [+0.0985, +0.1085] | 0.0% | -0.0000 |
+| common_m5 | random, per step | +0.0603 [+0.0383, +0.0905] | +0.0653 [+0.0588, +0.0722] | 0.0% | -0.0005 |
+| hetero_m2 | ours (constant) | +0.0058 [+0.0016, +0.0124] | +0.0092 [+0.0072, +0.0114] | 3.0% | +0.0068 |
+| hetero_m2 | equal weights | +0.0041 [-0.0014, +0.0141] | +0.0076 [+0.0045, +0.0108] | 33.0% | +0.0269 |
+| hetero_m2 | uniform-average rule | +0.0399 [+0.0126, +0.0696] | +0.0451 [+0.0378, +0.0526] | 7.0% | +0.0267 |
+| hetero_m2 | best constant found | -0.0189 [-0.0307, -0.0093] | -0.0208 [-0.0237, -0.0180] | 98.0% | +0.0544 |
+| hetero_m2 | random, fixed | +0.1332 [+0.1112, +0.1503] | +0.1286 [+0.1230, +0.1339] | 5.5% | +0.0519 |
+| hetero_m2 | random, per step | +0.0108 [+0.0039, +0.0184] | +0.0130 [+0.0101, +0.0159] | 30.8% | +0.0503 |
+| hetero_m3 | ours (constant) | +0.0064 [+0.0018, +0.0140] | +0.0099 [+0.0076, +0.0123] | 11.0% | +0.0091 |
+| hetero_m3 | equal weights | +0.0343 [+0.0105, +0.0769] | +0.0412 [+0.0327, +0.0495] | 14.0% | +0.0694 |
+| hetero_m3 | uniform-average rule | +0.0439 [+0.0152, +0.0734] | +0.0461 [+0.0386, +0.0536] | 11.0% | +0.0444 |
+| hetero_m3 | best constant found | -0.0243 [-0.0390, -0.0094] | -0.0256 [-0.0299, -0.0214] | 93.0% | +0.0885 |
+| hetero_m3 | random, fixed | +0.1148 [+0.0850, +0.1413] | +0.1090 [+0.1011, +0.1165] | 5.4% | +0.0838 |
+| hetero_m3 | random, per step | +0.0349 [+0.0127, +0.0768] | +0.0422 [+0.0342, +0.0503] | 16.1% | +0.0872 |
+| hetero_m5 | ours (constant) | +0.0062 [+0.0021, +0.0137] | +0.0092 [+0.0072, +0.0115] | 8.0% | +0.0089 |
+| hetero_m5 | equal weights | +0.0491 [+0.0208, +0.0729] | +0.0530 [+0.0437, +0.0623] | 11.0% | +0.0682 |
+| hetero_m5 | uniform-average rule | +0.0385 [+0.0122, +0.0679] | +0.0390 [+0.0306, +0.0473] | 16.0% | +0.0755 |
+| hetero_m5 | best constant found | -0.0238 [-0.0386, -0.0111] | -0.0291 [-0.0339, -0.0244] | 96.0% | +0.1216 |
+| hetero_m5 | random, fixed | +0.0916 [+0.0651, +0.1183] | +0.0923 [+0.0843, +0.1002] | 4.4% | +0.1002 |
+| hetero_m5 | random, per step | +0.0491 [+0.0230, +0.0724] | +0.0534 [+0.0443, +0.0626] | 10.2% | +0.0921 |
+
+## Paired comparison with ours (constant)
+
+Excess = other − ours, per seed (random: mean over the seed's draws); positive means ours is better. 'Beats ours' counts seeds (random: individual draws) that are better than ours by more than 0.0001.
+
+| config | other | median excess [IQR] | mean excess [95% CI] | beats ours | largest gain over ours |
+|---|---|---|---|---|---|
+| paper_m3 | ours (schedule) | +0.0000 [+0.0000, +0.0000] | +0.0000 [+0.0000, +0.0000] | 0.0% | -0.0000 |
+| paper_m3 | equal weights | +0.0001 [+0.0001, +0.0001] | +0.0001 [+0.0001, +0.0001] | 0.0% | -0.0001 |
+| paper_m3 | uniform-average rule | +0.1215 [+0.1215, +0.1215] | +0.1215 [+0.1215, +0.1215] | 0.0% | -0.1215 |
+| paper_m3 | best constant found | +0.0000 [+0.0000, +0.0000] | -0.0000 [-0.0000, -0.0000] | 0.0% | +0.0000 |
+| paper_m3 | random, fixed | +0.0988 [+0.0973, +0.1004] | +0.0991 [+0.0985, +0.0996] | 0.0% | -0.0003 |
+| paper_m3 | random, per step | +0.0093 [+0.0087, +0.0099] | +0.0093 [+0.0091, +0.0096] | 0.0% | -0.0001 |
+| common_m2 | ours (schedule) | +0.0000 [+0.0000, +0.0000] | +0.0000 [+0.0000, +0.0000] | 0.0% | +0.0000 |
+| common_m2 | equal weights | +0.0000 [+0.0000, +0.0000] | +0.0000 [-0.0000, +0.0000] | 0.0% | +0.0000 |
+| common_m2 | uniform-average rule | +0.0000 [+0.0000, +0.0000] | -0.0000 [-0.0000, +0.0000] | 0.0% | +0.0000 |
+| common_m2 | best constant found | +0.0000 [+0.0000, +0.0000] | -0.0000 [-0.0000, -0.0000] | 0.0% | +0.0000 |
+| common_m2 | random, fixed | +0.1509 [+0.1152, +0.1746] | +0.1395 [+0.1306, +0.1480] | 0.0% | -0.0000 |
+| common_m2 | random, per step | +0.0168 [+0.0121, +0.0210] | +0.0163 [+0.0151, +0.0175] | 0.0% | -0.0000 |
+| common_m3 | ours (schedule) | +0.0000 [-0.0000, +0.0000] | -0.0000 [-0.0000, +0.0000] | 0.0% | +0.0000 |
+| common_m3 | equal weights | +0.0619 [+0.0373, +0.0845] | +0.0628 [+0.0567, +0.0691] | 0.0% | -0.0017 |
+| common_m3 | uniform-average rule | +0.0000 [+0.0000, +0.0552] | +0.0324 [+0.0226, +0.0431] | 0.0% | -0.0000 |
+| common_m3 | best constant found | +0.0000 [+0.0000, +0.0000] | -0.0000 [-0.0000, -0.0000] | 7.0% | +0.0003 |
+| common_m3 | random, fixed | +0.1425 [+0.1244, +0.1523] | +0.1352 [+0.1297, +0.1404] | 0.0% | -0.0001 |
+| common_m3 | random, per step | +0.0618 [+0.0361, +0.0817] | +0.0634 [+0.0574, +0.0695] | 0.0% | -0.0000 |
+| common_m5 | ours (schedule) | +0.0000 [-0.0000, +0.0000] | +0.0000 [-0.0000, +0.0000] | 0.0% | +0.0000 |
+| common_m5 | equal weights | +0.0598 [+0.0379, +0.0893] | +0.0648 [+0.0582, +0.0718] | 0.0% | -0.0060 |
+| common_m5 | uniform-average rule | +0.0171 [+0.0000, +0.0599] | +0.0380 [+0.0288, +0.0475] | 0.0% | -0.0000 |
+| common_m5 | best constant found | +0.0000 [+0.0000, +0.0000] | -0.0000 [-0.0000, -0.0000] | 8.0% | +0.0004 |
+| common_m5 | random, fixed | +0.1043 [+0.0888, +0.1186] | +0.1035 [+0.0984, +0.1085] | 0.0% | -0.0000 |
+| common_m5 | random, per step | +0.0603 [+0.0383, +0.0905] | +0.0653 [+0.0588, +0.0722] | 0.0% | -0.0005 |
+| hetero_m2 | ours (schedule) | -0.0058 [-0.0124, -0.0016] | -0.0092 [-0.0114, -0.0072] | 95.0% | +0.0524 |
+| hetero_m2 | equal weights | -0.0012 [-0.0061, +0.0039] | -0.0017 [-0.0040, +0.0007] | 54.0% | +0.0348 |
+| hetero_m2 | uniform-average rule | +0.0330 [+0.0109, +0.0589] | +0.0359 [+0.0302, +0.0415] | 10.0% | +0.0199 |
+| hetero_m2 | best constant found | -0.0270 [-0.0425, -0.0137] | -0.0301 [-0.0343, -0.0258] | 100.0% | +0.0984 |
+| hetero_m2 | random, fixed | +0.1243 [+0.0981, +0.1416] | +0.1194 [+0.1135, +0.1252] | 7.9% | +0.0931 |
+| hetero_m2 | random, per step | +0.0039 [-0.0026, +0.0103] | +0.0038 [+0.0014, +0.0061] | 44.4% | +0.0609 |
+| hetero_m3 | ours (schedule) | -0.0064 [-0.0140, -0.0018] | -0.0099 [-0.0122, -0.0077] | 86.0% | +0.0603 |
+| hetero_m3 | equal weights | +0.0265 [+0.0019, +0.0674] | +0.0313 [+0.0226, +0.0401] | 21.0% | +0.0740 |
+| hetero_m3 | uniform-average rule | +0.0340 [+0.0095, +0.0560] | +0.0362 [+0.0302, +0.0423] | 12.0% | +0.0385 |
+| hetero_m3 | best constant found | -0.0336 [-0.0496, -0.0147] | -0.0355 [-0.0405, -0.0307] | 98.0% | +0.1039 |
+| hetero_m3 | random, fixed | +0.1028 [+0.0710, +0.1310] | +0.0991 [+0.0904, +0.1074] | 8.3% | +0.0883 |
+| hetero_m3 | random, per step | +0.0262 [+0.0028, +0.0658] | +0.0323 [+0.0238, +0.0409] | 24.6% | +0.0917 |
+| hetero_m5 | ours (schedule) | -0.0062 [-0.0137, -0.0021] | -0.0092 [-0.0114, -0.0072] | 92.0% | +0.0649 |
+| hetero_m5 | equal weights | +0.0359 [+0.0145, +0.0671] | +0.0438 [+0.0346, +0.0533] | 13.0% | +0.0703 |
+| hetero_m5 | uniform-average rule | +0.0278 [+0.0084, +0.0573] | +0.0298 [+0.0225, +0.0370] | 17.0% | +0.0885 |
+| hetero_m5 | best constant found | -0.0331 [-0.0485, -0.0230] | -0.0383 [-0.0432, -0.0337] | 100.0% | +0.1346 |
+| hetero_m5 | random, fixed | +0.0834 [+0.0549, +0.1095] | +0.0830 [+0.0750, +0.0910] | 7.0% | +0.1079 |
+| hetero_m5 | random, per step | +0.0357 [+0.0144, +0.0671] | +0.0441 [+0.0350, +0.0535] | 14.1% | +0.0942 |
+
+## Mahalanobis distance, common-covariance configurations (mean excess over the best constant found)
+
+| config | ours (constant) | equal weights | uniform-average rule | random, fixed | random draws beating the uniform-average rule (in TV) |
+|---|---|---|---|---|---|
+| paper_m3 | +0.0% | -0.0% | +49.9% | +37.6% | 78.9% |
+| common_m2 | +0.0% | -0.0% | +0.0% | +49.9% | 0.0% |
+| common_m3 | +0.0% | +15.8% | +8.5% | +40.7% | 9.9% |
+| common_m5 | +0.0% | +16.9% | +10.3% | +30.8% | 15.7% |
