@@ -1,10 +1,10 @@
-# Multiobjective Diffusion
+# Minimax Score Combination for Diffusion Sampling Toward Several Targets
 
-This repository is the official implementation of **paper title**. 
+This repository is the official implementation of **Minimax Score Combination for Diffusion Sampling Toward Several Targets**.
 
-We propose...
+We study a DDPM-type sampler driven by a convex combination of the true scores of several target distributions, and propose choosing the weights by minimizing the worst-case excess path divergence to the targets (the *minimax weights*), which is a second-order cone program.
 
-This repository contains...
+This repository contains the code for the experiments in the paper. They compare the minimax weights with uniformly random weights, equal weights, and other weight-selection rules on Gaussian targets, where the worst-case total variation of the sampler can be computed exactly.
 
 ## Requirements
 
@@ -16,40 +16,29 @@ conda activate multiobjective-diffusion
 pip install -r requirements.txt
 ```
 
-Install PyTorch separately to match your hardware. On CPU only:
+No GPU is needed.
+
+## Reproducing the Results
+
+Run the commands from the `experiments` directory:
 
 ```bash
-pip install torch torchvision
+python sanity_checks.py        # checks the closed forms, the quadrature and the solvers
+python run_random_weights.py   # runs all configurations with 100 seeds each
+python plot_random_weights.py  # produces the tables and the figure
 ```
 
-On CUDA (example — substitute your CUDA version):
-
-```bash
-pip install torch torchvision --index-url https://download.pytorch.org/whl/cu130
-```
-
-See https://pytorch.org/get-started/locally/ for the correct command for your system.
+The outputs are written to `experiments/results`. The full experiment takes about 44 minutes on the machine below, using 12 worker processes. The number of seeds and of worker processes can be changed with `--seeds` and `--workers`.
 
 ## System Specifications of Reported Runs
 
-For all of the results we report in our paper, we use a dedicated Linux server with the following specifications:
-
-  
+For all of the results we report in our paper, we use a laptop with the following specifications:
 
 | **Component** | **Details** |
-
 |--------------|-------------|
-
-| **Machine** | Lenovo ThinkStation P3 Tower Gen 2 |
-
-| **CPU** | Intel Core Ultra 9 285K (24 cores, up to 7.3 GHz) |
-
-| **GPU** | NVIDIA RTX 4000 Ada Generation (Lovelace) |
-
-| **RAM** | 48 GB |
-
-| **Storage** | 1.86 TB NVMe SSD + 2×10.9 TB HDD (≈ 23.7 TB total) |
-
-| **OS** | Ubuntu 24.04.2 LTS (Noble Numbat) |
-
-| **Driver** | NVIDIA 580.126.09 |
+| **Machine** | Apple MacBook Pro (Mac16,6) |
+| **CPU** | Apple M4 Max (14 cores: 10 performance, 4 efficiency) |
+| **GPU** | Not used |
+| **RAM** | 36 GB |
+| **OS** | macOS 27.0.1 |
+| **Software** | Python 3.11.17, NumPy 2.4.6, SciPy 1.17.1, CVXPY 1.9.3, Clarabel 0.11.1 |
